@@ -1,6 +1,6 @@
 # Simple SSO-client bundle 
 
-[![Latest Stable Version](http://img.shields.io/badge/Latest%20Stable-1.0.0-green.svg)](http://optgit.optimeconsulting.net:8090/internal/optime_sso_client)
+[![Latest Stable Version](http://img.shields.io/badge/Latest%20Stable-1.0.0-green.svg)](http://optgit.optimeconsulting.net:8090/component/optime_sso_client)
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg?style=flat-square)](https://php.net/)
 
 This repository contains a SSO-client bundle that allows you authenticate user in your symfony application via a SSO-server.
@@ -65,15 +65,15 @@ guard:
 To configure the bundle create a **simple_sso_client.yaml** file with the following parameters:
 ```yaml
 simple_sso_client:
-  default_server: bluecarpet 
+  default_server: Application 
   user_factory: app-user-factory
   login_form_path: login-form
   servers:
-    bluecarpet:
-      server_id: bluecarpet-id
-      username: bluecarpet-username
-      password: bluecarpet-password
-      url: bluecarpet-sso-login-url
+    Application:
+      server_id: Application-id
+      username: Application-username
+      password: Application-password
+      url: Application-sso-login-url
 ```
 #### parameters
 
@@ -117,7 +117,7 @@ the following query parameters:
 - **_sso_login**: Indicates that use the SSO login authenticator
 - **_sso_server_id**: Identify the SSO server to use to authenticate the user.
 
->**Example**: example-application.test/?_sso_login&_sso_server_id=3923342123
+>**Example**: dominio_app/?_sso_login&_sso_server_id=3923342123
 
 ## Security Vulnerabilities
 
