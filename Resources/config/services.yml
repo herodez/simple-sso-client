@@ -1,0 +1,67 @@
+services:
+    simple_sso_client.security.simple_sso_authenticator:
+        public: false
+        class: Optime\SimpleSsoClientBundle\Security\SimpleSsoAuthenticator
+        arguments:
+            - '@simple_sso_client.remote_connection'
+            - '@simple_sso_client.security.simple_sso_user_provider'
+            - '@security.http_utils'
+            - '' # servicio configurado desde la extension del bundle
+            - '' # valor configurado desde la extension del bundle
+            - '' # valor configurado desde la extension del bundle
+        tags:
+            - { name: monolog.logger, channel: security }
+
+    simple_sso_client.security.repository.external_user:
+        class: Optime\SimpleSsoClientBundle\Security\ExternalUserRepository
+        arguments:
+            - "@simple_sso_client.guzzle_client"
+            - "@simple_sso_client.remote_connection"
+            - ""
+        public: false
+
+    simple_sso_client.security.simple_sso_user_provider:
+        public: false
+        class: Optime\SimpleSsoClientBundle\Security\Provider\SimpleSsoUserProvider
+        arguments:
+            - '@simple_sso_client.security.repository.external_user'
+
+    simple_sso_client.guzzle_client:
+        public: false
+        class: GuzzleHttp\Client
+
+    simple_sso_client.default_remote_connection:
+        public: false
+        class: Optime\SimpleSsoClientBundle\External\RemoteConnection
+        arguments: [ '@simple_sso_client.security_provider.simple_sso_server_provider' ] # servicio configurado desde la extension del bundle
+
+    simple_sso_client.security.listener.check_active_session:
+        class: Optime\SimpleSsoClientBundle\EventListener\CheckActiveSessionListener
+        arguments:
+            - "@security.token_storage"
+            - "@simple_sso_client.security.authorization.active_session_checker"
+            - "@?logger"
+        tags:
+            - { name: kernel.event_listener, event: "kernel.request", priority: 6 }
+            - { name: "monolog.logger", channel: "security" }
+
+    simple_sso_client.security.authorization.active_session_checker:
+        public: false
+        class: Optime\SimpleSsoClientBundle\Security\Authorization\ActiveSessionChecker
+        arguments:
+            - "@simple_sso_client.security.authorization.remote_connection_verifier"
+            - "@simple_sso_client.remote_connection"
+
+    simple_sso_client.security.authorization.remote_connection_verifier:
+        public: false
+        class: Optime\SimpleSsoClientBundle\Security\Authorization\RemoteConnectionVerifier
+        arguments: ["@simple_sso_client.guzzle_client", "@simple_sso_client.remote_connection"]
+
+    simple_sso_client.security.roles_resolver.default:
+        public: false
+        class: Optime\SimpleSsoClientBundle\Security\User\Role\DefaultRolesResolver
+        arguments: [""]  # Viene del SimpleSsoClientExtension
+
+    simple_sso_client.security_provider.simple_sso_server_provider:
+        class: Optime\SimpleSsoClientBundle\Security\Provider\SimpleSsoServerProvider
+        arguments: ['@request_stack', "@security.token_storage", "",""]

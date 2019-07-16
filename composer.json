@@ -1,0 +1,31 @@
+{
+    "name": "optime/simple-sso-client",
+    "description": "Symfony client sso for sso server authentication",
+    "keywords": ["sso-client", "sso", "bundle"],
+    "type": "symfony-bundle",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Manuel Aguirre",
+            "email": "maguirre@optimeconsulting.com"
+        },
+        {
+            "name": "Jeenson Aguilar",
+            "email": "jaguilar@optimeconsulting.com"
+        },
+        {
+            "name": "Mario Gonzalez",
+            "email": "mgonzalez@optimeconsulting.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "symfony/framework-bundle": "^2.8||^3.0||^4.0",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Optime\\SimpleSsoClientBundle\\": ""
+        }
+    }
+}
