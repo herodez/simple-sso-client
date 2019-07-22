@@ -17,7 +17,7 @@ services:
         arguments:
             - "@simple_sso_client.guzzle_client"
             - "@simple_sso_client.remote_connection"
-            - ""
+            - "@simple_sso_client.security_user.user_factory"
         public: false
 
     simple_sso_client.security.simple_sso_user_provider:
@@ -65,3 +65,6 @@ services:
     simple_sso_client.security_provider.simple_sso_server_provider:
         class: Optime\SimpleSsoClientBundle\Security\Provider\SimpleSsoServerProvider
         arguments: ['@request_stack', "@security.token_storage", "",""]
+
+    simple_sso_client.security_user.basic_user_factory:
+        class: Optime\SimpleSsoClientBundle\Security\User\BasicUserFactory

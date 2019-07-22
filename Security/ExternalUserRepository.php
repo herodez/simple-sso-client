@@ -54,7 +54,7 @@ class ExternalUserRepository
     {
         $created = date('Ymdhis');
         $hash = base64_encode(sha1($otp . $created . $this->remoteConnection->getPrivateKey()));
-        
+       
         try {
             $response = $this->httpClient->request('POST',
                 $this->remoteConnection->getLoginUrl(), [

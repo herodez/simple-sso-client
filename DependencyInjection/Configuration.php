@@ -83,7 +83,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('user_factory')
                     ->cannotBeEmpty()
-                    ->defaultValue(null)
+                    ->defaultValue('simple_sso_client.security_user.basic_user_factory')
                 ->end()
                 ->scalarNode('login_form_path')
                     ->cannotBeEmpty()
