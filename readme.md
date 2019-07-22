@@ -1,6 +1,6 @@
 # Simple SSO-client bundle 
 
-[![Latest Stable Version](http://img.shields.io/badge/Latest%20Stable-1.0.0-green.svg)](http://optgit.optimeconsulting.net:8090/component/optime_sso_client)
+[![Latest Stable Version](http://img.shields.io/badge/Latest%20Stable-1.1.1-green.svg)](http://optgit.optimeconsulting.net:8090/component/optime_sso_client)
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg?style=flat-square)](https://php.net/)
 
 This repository contains a SSO-client bundle that allows you authenticate user in your symfony application via a SSO-server.
