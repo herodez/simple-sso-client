@@ -67,7 +67,7 @@ To configure the bundle create a **simple_sso_client.yaml** file with the follow
 simple_sso_client:
   default_server: Application 
   user_factory: app-user-factory
-  login_form_path: login-form
+  server_id_on_path: {true|false}
   servers:
     Application:
       server_id: Application-id
@@ -83,8 +83,7 @@ is necessary only if you configure the **simple SSO client bundle** as primary l
 - **user_factory**: Configure the primary method to validate and create external user
 for your application.
 
-- **login_form_path**: Configure a login page to redirect if the current request not support
-SSO authentication. 
+- **server_id_on_path**: Configure if the _sso_server_id will be on the path
 
 - **servers**: Configure an array of SSO servers that your application allow for authenticate user.
 
@@ -96,6 +95,18 @@ SSO authentication.
 
 - **url**: Configure the SSO server URL
 
+#### User provider 
+
+In order to use the Simple SSO-client authenticator you must be has at least one user provider 
+in the **security.yaml** file's providers section, this provider must be an user provider implementation, not working with the `in_memory` user provider, if you don't have an user provider you can use
+the Simple SSO-client user provider as following:
+
+```yaml
+providers:
+  loyalty:
+    simple_sso:
+      id: simple_sso_client.security.simple_sso_user_provider
+```
 #### Configure as primary login system
 
 To configure the **Simple SSO client bundle** as primary login system you must be configure in your 
@@ -104,7 +115,7 @@ a SSO server previously and mark that as default SSO server, the following confi
 primary login system.
 ```yaml
 main:
-    pattern: ^/
+    pattern: ^/    
     guard:
         authenticators:
             - simple_sso_client.security.simple_sso_authenticator
@@ -112,12 +123,16 @@ main:
 #### Login with multiple SSO servers
 
 To authenticate a user with a specific SSO server, make a request to any URI with 
-the following query parameters: 
+the following query parameter: 
 
-- **_sso_login**: Indicates that use the SSO login authenticator
-- **_sso_server_id**: Identify the SSO server to use to authenticate the user.
+**_sso_server_id**: Identify the SSO server to use to authenticate the user.
 
->**Example**: dominio_app/?_sso_login&_sso_server_id=3923342123
+>**Example**: dominio_app/?_sso_server_id={server_id}
+
+or if you has configure the server_id_on_path option as true then you can use
+the following **URL** schema:
+
+>**Example**: dominio_app/{server_id}
 
 ## Security Vulnerabilities
 

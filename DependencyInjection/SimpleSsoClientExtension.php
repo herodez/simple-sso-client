@@ -2,11 +2,9 @@
 
 namespace Optime\SimpleSsoClientBundle\DependencyInjection;
 
-use Optime\SimpleSsoClientBundle\Security\Server\Server;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
@@ -31,9 +29,9 @@ class SimpleSsoClientExtension extends Extension
             ->replaceArgument(0, $config['roles_from_profile']);
         
         $this->configureRemoteConnectionService($container, $config);
-        $this->configureAuthenticatorService($container, $config);
         $this->configureExternalRepositoryService($container, $config);
         $this->configureServerProviderService($container, $config);
+        $this->configureServerIdOnPath($container, $config);
         
     }
     
@@ -56,22 +54,9 @@ class SimpleSsoClientExtension extends Extension
      * @param ContainerBuilder $container
      * @param $config
      */
-    protected function configureAuthenticatorService(ContainerBuilder $container, $config)
-    {
-        $container->findDefinition('simple_sso_client.security.simple_sso_authenticator')
-            ->replaceArgument(3, new Reference($config['roles_resolver_service']))
-            ->replaceArgument(4, $config['login_form_path'])
-            ->replaceArgument(5, $config['default_server'] !== null);
-    }
-    
-    /**
-     * @param ContainerBuilder $container
-     * @param $config
-     */
     protected function configureExternalRepositoryService(ContainerBuilder $container, $config)
     {
-        $container->findDefinition('simple_sso_client.security.repository.external_user')
-            ->replaceArgument(2, new Reference($config['user_factory']));
+        $container->setAlias('simple_sso_client.security_user.user_factory', $config['user_factory']);
     }
     
     /**
@@ -83,5 +68,16 @@ class SimpleSsoClientExtension extends Extension
         $container->findDefinition('simple_sso_client.security_provider.simple_sso_server_provider')
             ->replaceArgument(2, $config['servers'])
             ->replaceArgument(3, $config['default_server']);
+    }
+    
+    /**
+     * @param ContainerBuilder $container
+     * @param array $config
+     */
+    private function configureServerIdOnPath(ContainerBuilder $container, array $config)
+    {
+        if(!$config['server_id_on_path']){
+            $container->removeDefinition('simple_sso_client.event_listener.server_id_listener');
+        }
     }
 }

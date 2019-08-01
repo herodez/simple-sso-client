@@ -4,8 +4,7 @@ namespace Optime\SimpleSsoClientBundle\Security;
 
 use Optime\SimpleSsoClientBundle\External\RemoteConnectionInterface;
 use Optime\SimpleSsoClientBundle\Security\Exception\LoginException;
-use Optime\SimpleSsoClientBundle\Security\User\Role\RolesResolverInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Optime\SimpleSsoClientBundle\Security\Provider\SimpleSsoServerProvider;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +14,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
-use Symfony\Component\Security\Http\HttpUtils;
 
 class SimpleSsoAuthenticator extends AbstractGuardAuthenticator
 {
@@ -25,50 +23,29 @@ class SimpleSsoAuthenticator extends AbstractGuardAuthenticator
     private $remoteConnection;
     
     /**
-     * @var RolesResolverInterface
-     */
-    private $rolesResolver;
-    
-    /**
-     * @var string
-     */
-    private $loginFormPath;
-    
-    /**
-     * @var UserProviderInterface 
+     * @var UserProviderInterface
      */
     private $userProvider;
     
     /**
-     * @var HttpUtils 
+     * @var SimpleSsoServerProvider
      */
-    private $httpUtils;
-    
-    /**
-     * @var boolean 
-     */
-    private $hasDefaultSsoServer;
+    private $serverProvider;
     
     /**
      * SimpleSsoAuthenticator constructor.
      * @param RemoteConnectionInterface $remoteConnection
-     * @param \Twig_Environment $twig
-     * @param $rolesFromProfile
+     * @param UserProviderInterface $userProvider
+     * @param SimpleSsoServerProvider $serverProvider
      */
     public function __construct(
         RemoteConnectionInterface $remoteConnection,
         UserProviderInterface $userProvider,
-        HttpUtils $httpUtils,
-        RolesResolverInterface $rolesResolver,
-        $loginFormPath,
-        $hasDefaultSsoServer
+        SimpleSsoServerProvider $serverProvider
     ) {
         $this->remoteConnection = $remoteConnection;
-        $this->rolesResolver = $rolesResolver;
-        $this->loginFormPath = $loginFormPath;
         $this->userProvider = $userProvider;
-        $this->httpUtils = $httpUtils;
-        $this->hasDefaultSsoServer = $hasDefaultSsoServer;
+        $this->serverProvider = $serverProvider;
     }
     
     /**
@@ -92,29 +69,50 @@ class SimpleSsoAuthenticator extends AbstractGuardAuthenticator
         return $this->userProvider->loadUserByUsername($credentials['otp']);
     }
     
+    /**
+     * @param mixed $credentials
+     * @param UserInterface $user
+     * @return bool
+     */
     public function checkCredentials($credentials, UserInterface $user)
     {
         return true;
     }
     
+    /**
+     * @param Request $request
+     * @param TokenInterface $token
+     * @param string $providerKey
+     * @return RedirectResponse|Response|null
+     * @throws Exception\NotSsoServerExits
+     */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
         $request = $request->duplicate();
         $token->setAttribute('_sso_otp', $request->query->get('_sso_otp'));
-        $token->setAttribute('_sso_server_id', $request->query->get('_sso_server_id'));
+        $token->setAttribute('_sso_server_id', $this->serverProvider->getCurrentServer()->getServerId());
         $request->query->remove('_sso_otp');
-        $request->query->remove('_sso_login');
         $request->query->remove('_sso_server_id');
         $request->server->set('QUERY_STRING', http_build_query($request->query->all()));
         
         return new RedirectResponse($request->getUri(), 302);
     }
     
+    /**
+     * @param Request $request
+     * @param AuthenticationException $exception
+     * @return Response|void|null
+     */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
         throw new LoginException('Error de autenticación', $exception->getCode(), $exception);
     }
     
+    /**
+     * @param Request $request
+     * @param AuthenticationException|null $authException
+     * @return RedirectResponse|Response
+     */
     public function start(Request $request, AuthenticationException $authException = null)
     {
         if ($authException instanceof LoginException) {
@@ -124,18 +122,6 @@ class SimpleSsoAuthenticator extends AbstractGuardAuthenticator
                 $authException->getMessage(),
                 $authException->getPrevious()
             );
-        }
-        
-        // If not request for SSO login was make.
-        if ($this->hasDefaultSsoServer === false && !($request->query->has('_sso_login') && $request->query->has('_sso_server_id'))
-        ) {
-            if ($this->loginFormPath === null) {
-                throw  new HttpException(
-                    Response::HTTP_UNAUTHORIZED
-                );
-            } else {
-                return $this->httpUtils->createRedirectResponse($request, $this->loginFormPath);
-            }
         }
         
         $url = sprintf(
@@ -148,6 +134,9 @@ class SimpleSsoAuthenticator extends AbstractGuardAuthenticator
         return new RedirectResponse($url);
     }
     
+    /**
+     * @return bool
+     */
     public function supportsRememberMe()
     {
         return false;

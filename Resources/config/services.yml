@@ -5,10 +5,7 @@ services:
         arguments:
             - '@simple_sso_client.remote_connection'
             - '@simple_sso_client.security.simple_sso_user_provider'
-            - '@security.http_utils'
-            - '' # servicio configurado desde la extension del bundle
-            - '' # valor configurado desde la extension del bundle
-            - '' # valor configurado desde la extension del bundle
+            - '@simple_sso_client.security_provider.simple_sso_server_provider'
         tags:
             - { name: monolog.logger, channel: security }
 
@@ -68,3 +65,9 @@ services:
 
     simple_sso_client.security_user.basic_user_factory:
         class: Optime\SimpleSsoClientBundle\Security\User\BasicUserFactory
+
+    simple_sso_client.event_listener.server_id_listener:
+        class: Optime\SimpleSsoClientBundle\EventListener\ServerIdListener
+        arguments: ['@router']
+        tags:
+            - { name: kernel.event_listener, event: "kernel.request", priority: 10 }

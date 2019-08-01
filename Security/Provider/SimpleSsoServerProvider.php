@@ -4,16 +4,15 @@
 namespace Optime\SimpleSsoClientBundle\Security\Provider;
 
 
+use Optime\SimpleSsoClientBundle\Security\Exception\NotSsoServerExits;
 use Optime\SimpleSsoClientBundle\Security\Server\Server;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
-use Symfony\Contracts\Cache\CacheInterface;
-use Optime\SimpleSsoClientBundle\Security\Exception\NotSsoServerExits;
 
 class SimpleSsoServerProvider implements SsoServerProviderInterface
 {
     /**
-     * @var array
+     * @var Server[]
      */
     private $servers;
     
@@ -49,10 +48,12 @@ class SimpleSsoServerProvider implements SsoServerProviderInterface
     {
         if ($this->token->getToken() !== null && $this->token->getToken()->hasAttribute('_sso_server_id')) {
             return $this->getServerById($this->token->getToken()->getAttribute('_sso_server_id'));
+        } elseif($serverId = $this->requestStack->getCurrentRequest()->get('_sso_server_id')){
+            return $this->getServerById($serverId);
         } elseif ($this->defaultServer !== null) {
             return $this->getServerByName($this->defaultServer);
         } else {
-            return $this->getServerById($this->requestStack->getCurrentRequest()->get('_sso_server_id'));
+            throw new \LogicException('Parameter _sso_server_id not found in the request.');
         }
     }
     
